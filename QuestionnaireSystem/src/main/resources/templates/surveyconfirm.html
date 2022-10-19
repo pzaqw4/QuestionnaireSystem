@@ -1,0 +1,107 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index::header}">
+        <meta charset="UTF-8" />        
+</head>
+<script th:inline="javascript">
+	const pageUrl = new URL(window.location.href);
+	var pid = pageUrl.searchParams.get("postId");  //取URL  postId=之後的postid來用
+$(document).ready(function () {	
+	var ansVal = JSON.parse(sessionStorage.getItem("ansVal"));//轉型sessionStorage 
+	if(ansVal == null){
+		alert('請確認作答後再送出!!'); history.go(-1);
+	}
+	
+	$.ajax({
+        url: "/getQuestions/"+pid,
+        type: "GET",
+        dataType: 'json',   //確保回傳的值為JSON型別，而不是String
+        success: function (result) {                           
+            if(result !== null){
+            	for (var i = 0; i < result.length; i++) {
+                	var obj = result[i];               	
+                	var htmltext = `<h4>第${i + 1}題：${obj.caption}</h4>`;//第幾題跟題目名
+                	if (ansVal != null) {
+                    	for (var k = 0; k < ansVal.length; k++) {                    	
+                       	 if (obj.quId == ansVal[k].key) {
+                            htmltext += `<p>回答： ${ansVal[k].value}<p>`;
+                            break;
+                        	}
+                    	}
+                	}
+                	htmltext += `<hr class="invisible"/>`;
+                	htmltext += `</br></div >`;
+                	$("#ansText").append(htmltext);
+            	}
+            }
+        }
+    });
+})
+</script>
+    <title>Survey Confirm Page</title>
+    <body>
+    	<div th:replace="~{index::layout1}"></div>
+    	<div class="container"> <!-- 內容放這邊 -->
+    		<div class="row mb-3">
+				<div class="col-2">
+					<h1 th:text="問卷確認" class="fs-2 fw-bold"></h1>
+				</div>
+				<div class="col-3"></div>
+				<div class="col-4">
+					<small th:text="'有效時間為 : '+${survey.startTime} + '~~' + ${survey.endTime}" ></small>
+				</div>									
+			</div>
+			<div class="row mb-3">
+				<div class="col-2"></div>
+				<div class="col-3">
+					<h1 th:text="${survey.title}" class="fs-2 fw-bold"></h1>
+				</div>								
+			</div>	
+			<hr />
+			<form th:action="@{/surveyconfirm}" method="post">
+    	  		<fieldset disabled>
+            	<div class="row">
+                	<div class="col-4 form-floating mb-3">
+                    	<input type="text" th:value="${session.feedback.userName}" class="form-control" >
+                    	<label>姓名:</label>
+                	</div>
+            	</div>
+           	 	<div class="row">
+                	<div class="col-4 form-floating mb-3">
+                    	<input type="tel" th:value="${session.feedback.userPhone}" class="form-control">
+                    	<label>手機:</label>
+                	</div>
+            	</div>
+            	<div class="row">
+                	<div class="col-4 form-floating mb-3">
+                    	<input type="email" th:value="${session.feedback.userEmail}" class="form-control">
+                    	<label>Email:</label>
+                	</div>
+            	</div>
+            	<div class="row">
+                	<div class="col-4 form-floating mb-3">
+                    	<input type="number" th:value="${session.feedback.userAge}" class="form-control">
+                    	<label>年齡:</label>
+                	</div>
+            	</div>
+            	<hr class="my-4 invisible">
+            	<!-- 回答內容 -->
+            	<div id="ansText"></div>
+          		</fieldset> 
+          		<div class="row mb-3">
+					<div class="col-2"></div>
+					<div class="col-2">
+						<a th:href="@{/survey?postId=}+${survey.postId}" class="btn btn-warning">修改</a>
+					</div>
+					<div class="col-1"></div>
+					<div class="col-2">
+						<button type="submit" class="btn btn-primary" th:confirm-submit="|確認送出嗎??|" 
+					onclick="return confirm(this.getAttribute('confirm-submit'))">送出</button>
+					</div>									
+				</div>
+			</form>
+    	</div>
+    </body>
+    <footer th:replace="~{index::footer}">
+    </footer>
+</html>

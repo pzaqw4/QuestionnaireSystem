@@ -1,0 +1,104 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{index::header}">
+        <meta charset="UTF-8" />        
+    </head>    
+    <script th:inline="javascript">
+    const pageUrl = new URL(window.location.href);
+	var postId = pageUrl.searchParams.get("postId");  //取URL  postId=之後的postid來用	
+	
+       $(document).ready(function() {  
+    	   $.ajax({
+               url: "/loadstatistics/"+postId,
+               type: "GET",
+               dataType: 'json',
+               success: function (result) {
+            	   drawPieChart(result);
+               },
+               error: function (xhr, ajaxOptions, thrownError) {                   	
+                   alert("Error!!");
+               }
+           });		 
+    	});
+
+       
+       function drawPieChart(chartInfo) {
+    	    var each = Highcharts.each,
+    	        $charts = $('#charts');
+    	    each(chartInfo,function(item, i) {
+    	        $charts.append('<div id="container' + i + '"></div>');
+    	        var $chart = $('#container' + i);
+    	        var dataArray = []; 
+    	        
+    	       	if(item.selectionInfo.length === 0 || item.selectionInfo == null){  
+    	       		var data = [];
+    	        	data.push("此題尚未有人作答" , 0);
+    	        	dataArray.push(data);
+    	       	}else{
+    	       		for (let j=0; j<item.selectionInfo.length; j++) {
+    	       			var data = [];
+        	        	data.push(item.selectionInfo[j].name , item.selectionInfo[j].count);
+        	        	dataArray.push(data);
+    	        	}
+    	       	}    	        
+    	        
+    	        $chart.highcharts({
+    	        	  chart: {
+    	    		        plotBackgroundColor: null,
+    	    		        plotBorderWidth: null,
+    	    		        plotShadow: false,
+    	    		        type: 'pie'
+    	    		    },
+    	    		    title: {
+    	    		        text: item.title
+    	    		    },
+    	    		    tooltip: {
+    	    		        pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
+    	    		    },
+    	    		    accessibility: {
+    	    		        point: {
+    	    		            valueSuffix: '%'
+    	    		        }
+    	    		    },
+    	    		    plotOptions: {
+    	    		        pie: {
+    	    		            allowPointSelect: true,
+    	    		            cursor: 'pointer',
+    	    		            dataLabels: {
+    	    		                enabled: true,
+    	    		                format: '<b>{point.name}</b>: {point.percentage:.1f} %'
+    	    		            }
+    	    		        }
+    	    		    },
+    	    		    credits:{
+    	    		    	enabled: false
+    	    		    },
+    	            	series:[{
+    	            		 "name": "counts",
+    	                     "data": dataArray
+    	            }]
+    	        });
+    	    });
+    	}
+    </script>
+    <title>Statistics Page</title>
+    <body>
+    	<div th:replace="~{index::layout1}"></div>
+    	<div class="container"> <!-- 內容放這邊 -->
+    		<div class="row mb-3">
+				<div class="col-2">
+					<h1 th:text="統計資料" class="fs-2 fw-bold"></h1>
+				</div>									
+			</div>
+			<div class="row mb-3">
+				<div class="col-2"></div>
+				<div class="col-3">
+					<h1 th:text="${survey.title}" class="fs-2 fw-bold"></h1>
+				</div>								
+			</div>
+			<div id="charts" class="mb-3"></div>  
+    	</div>
+    </body>
+    <footer th:replace="~{index::footer}">
+    </footer>
+</html>

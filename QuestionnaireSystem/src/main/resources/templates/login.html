@@ -1,0 +1,45 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{index::header}">
+        <meta charset="UTF-8" />        
+    </head>
+    <title>Login Page</title>
+    <script th:inline="javascript">
+   		var message = /*[[${alertMessage}]]*/ "";
+   		if(message != null)
+   		alert(message);
+  	</script>
+    <body>
+    	<div th:replace="~{index::layout1}"></div>
+      <div class="container">
+    	<p class="fs-2 fw-bold">管理員登入</p>
+    	<form action="#" th:action="@{/login}" method="post" class="row g-3 needs-validation" novalidate >
+         <div class="row mb-3">
+            <div class="col-2 text-center">
+                <label for="txtAcc" class="form-label">帳號 : </label>
+            </div>
+            <div class="col-4">
+                <input type="text" class="form-control" id="txtAcc" name="account" required>
+                <div class="invalid-feedback"> 請填入帳號! </div>
+            </div>
+         </div>
+         <div class="row mb-4">
+            <div class="col-2 text-center">
+                <label for="txtPwd" class="form-label">密碼 : </label>
+            </div>
+            <div class="col-4">
+                <input type="password" class="form-control" id="txtPwd" name="password" required pattern=".{5,15}" title="">
+                <div class="invalid-feedback"> 請填入密碼! </div>
+            </div>
+         </div>
+         <div class="col-12">
+             <button class="btn btn-primary" type="submit">送出</button>&nbsp;&nbsp;
+             <button class="btn btn-light" type="reset">清除</button>
+         </div>
+        <hr class="my-4">
+       </form>
+      </div>           
+    </body>
+    <footer th:replace="~{index::footer}">
+    </footer>
+</html>

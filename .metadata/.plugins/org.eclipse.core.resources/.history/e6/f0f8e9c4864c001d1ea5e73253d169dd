@@ -1,0 +1,257 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+    <head th:replace="~{index::header}">
+        <meta charset="UTF-8" />      
+    </head>
+    <title>BackEnd Index Page</title>
+    <script th:inline="javascript">
+   		var message = /*[[${alertMessage}]]*/ "";
+   		if(message != null)
+   		alert(message);
+   		
+   		var searchSurveys = /*[[${searchSurveys}]]*/
+   			
+   		var count = searchSurveys.totalPages;
+   			
+   		    function index() {
+   		    	 var pageUrl = new URL(window.location.href);
+   		         var strUrl = pageUrl.toString();
+   		         if (pageUrl.searchParams.get("pageNum") == null) {               
+   		             const newUrl = pageUrl + '&pageNum=0';
+   		             window.location.href = newUrl;
+   		         } else if (strUrl.includes("pageNum") == true) {     
+   		             let arr =strUrl.split('&pageNum=');
+   		             window.location.href = arr[0] + '&pageNum=0';
+   		         } else {
+   		             window.location.href = pageUrl;
+   		         }
+   		    }
+   		    
+   		    function back() {
+   		   	 var pageUrl = new URL(window.location.href);
+   		   	 var number = pageUrl.searchParams.get("pageNum");
+   		   	 var index =  parseInt(number);
+   		     const result = index - 1;        
+   		        var strUrl = pageUrl.toString();
+   		        if (number == null) {               
+   		            const newUrl = pageUrl + '&pageNum=' + result;
+   		            window.location.href = newUrl;
+   		        } else if (strUrl.includes("pageNum") == true) {     
+   		            let arr =strUrl.split('&pageNum=');
+   		            window.location.href = arr[0] + '&pageNum=' + result;
+   		        } else {
+   		            window.location.href = pageUrl;
+   		        }
+   		   }
+
+   		    function next() {
+   		    	 var pageUrl = new URL(window.location.href);
+   		    	 var number = pageUrl.searchParams.get("pageNum");
+   		    	 var index =  parseInt(number);
+   		         const result = index + 1;        
+   		         var strUrl = pageUrl.toString();
+   		         if (number == null) {               
+   		             const newUrl = pageUrl + '&pageNum=1';
+   		             window.location.href = newUrl;
+   		         } else if (strUrl.includes("pageNum") == true) {     
+   		             let arr =strUrl.split('&pageNum=');
+   		             window.location.href = arr[0] + '&pageNum=' + result;
+   		         } else {
+   		             window.location.href = pageUrl;
+   		         }
+   		    }
+
+   		    function last() {
+   		    	 var result = count - 1;
+   		    	 if(result < 0){
+   		    		 result = 0;
+   		    	 }
+   		    	 var pageUrl = new URL(window.location.href);
+   		         var strUrl = pageUrl.toString();
+   		         if (pageUrl.searchParams.get("pageNum") == null) {               
+   		             const newUrl = pageUrl + '&pageNum=' + result;
+   		             window.location.href = newUrl;
+   		         } else if (strUrl.includes("pageNum") == true) {     
+   		             let arr =strUrl.split('&pageNum=');
+   		             window.location.href = arr[0] + '&pageNum=' + result;
+   		         } else {
+   		             window.location.href = pageUrl;
+   		         }
+   		    }
+   		 function goStatistics() {
+   			sessionStorage.setItem("goStatistics", "goStatistics");
+   		 }
+   		 
+   		$(document).ready(function () {
+   			$(".goStatistics").click(function () {
+   				sessionStorage.setItem("goStatistics", "goStatistics");
+   			})
+   			
+   			 $(".next1").click(function () {
+            var index = $(this).attr("id");
+            const result = index - 1;
+            var pageUrl = new URL(window.location.href);
+            var strUrl = pageUrl.toString();
+            if (pageUrl.searchParams.get("pageNum") == null) {               
+                const newUrl = pageUrl + '&pageNum=' + result;
+                window.location.href = newUrl;
+            } else if (strUrl.includes("pageNum") == true) {     
+                let arr =strUrl.split('&pageNum=');
+                window.location.href = arr[0] + '&pageNum=' + result;
+            } else {
+                window.location.href = pageUrl;
+            }
+        })
+   		})
+  	</script>
+    <body>
+    	<div th:replace="~{index::layout1}"></div>
+    	<div class="container"> <!-- 內容放這邊 -->
+    	  <h1 class="fs-2 fw-bold">後台問卷管理</h1>
+    	  <div class="row justify-content-start">
+            <div class="col-2" th:fragment="backendlayout">            
+                <a th:href="@{/backendindex}" class="list-group-item list-group-item-action list-group-item-info">問卷清單</a>
+                <a th:href="@{/frenquenquestion}" class="list-group-item list-group-item-action list-group-item-info">常見問題管理</a>               
+            </div>
+            <div class="col-10">
+            <form th:action="@{/backendindex}" method="get">
+            <div class="row mb-3">
+				<div class="col-2"></div>
+				<div class="col-2 text-center">
+					<h2 class="form-label">問卷標題 : </h2>
+				</div>
+				<div class="col-4">
+					<input type="text" class="form-control" th:name="title" placeholder="請填入問卷標題">
+				</div>
+			</div>
+			<div class="row mb-3">
+				<div class="col-1"></div>
+				<div class="col-3 text-center">
+					<h2 class="form-label">開始 / 結束 : </h2>
+				</div>
+				<div class="col-2">
+					<input type="text" class="form-control" th:name="startTime" placeholder="(yyyy-MM-dd)">
+				</div>
+				<div class="col-2">
+					<input type="text" class="form-control" th:name="endTime" placeholder="(yyyy-MM-dd)">
+				</div>
+				<div class="col-2">
+					<button type="submit" name="search" class="btn btn-primary">查詢</button>
+				</div>
+			</div>
+			<button type="submit" name="delete" class="btn btn-danger mb-3" th:confirm-delete="|確定刪除嗎??|"
+					onclick="return confirm(this.getAttribute('confirm-delete'))">刪除</button>
+			<a th:href="@{/edit}" class="btn btn-secondary mb-3">新增</a>
+          	<table class="table table-striped table-bordered table-sm table-hover">
+            	<tr>
+            	  <td class="th-sm bg-dark p-2 text-white" width="5%"></td>
+                  <td class="th-sm bg-dark p-2 text-white bg-opacity-75" width="5%">編號</td>
+                  <td class="th-sm bg-dark p-2 text-white bg-opacity-50" width="25%">問卷標題</td>
+                  <td class="th-sm bg-dark p-2 text-dark bg-opacity-25" width="10%">狀態</td>
+                  <td class="th-sm bg-dark p-2 text-dark bg-opacity-10" width="20%">開始時間</td>
+                  <td class="th-sm  p-2 text-dark bg-opacity-5" width="20%">結束時間</td>
+                  <td class="th-sm  p-2 text-dark" width="15%">觀看統計</td>
+            	</tr>
+            	
+            	<tr th:if="${searchSurveys} == null" th:each="survey,status : ${surveys}">
+            	  <td>
+            	  	<input th:value="${survey.postId}" th:name="postId" type="checkbox">
+            	  </td>
+            	  <td th:text="${status.count}"></td>
+            	  <td>
+            	  	<a th:href="@{/edit?postId=}+${survey.postId}" th:text="${survey.title}"></a>
+            	  </td>
+            	  <!-- 如果available = 1 文字顯示:投票中，反之 :已完結 -->
+            	  <td th:text="${survey.available eq 1 ? '投票中' : '已完結'}"></td>
+            	  <td th:text="${#dates.format(survey.startTime, 'yyyy-MM-dd')}"></td>
+            	  <td th:text="${#dates.format(survey.endTime, 'yyyy-MM-dd')}"></td>
+            	  <td >
+            	    <a th:href="@{/edit?postId=}+${survey.postId}" class="btn btn-warning goStatistics">前往</a>
+            	  </td>
+            	</tr>
+            	
+            	<tr th:unless="${searchSurveys} == null" th:each="survey,status : ${searchSurveys}">
+            	 <td>
+            	  	<input th:value="${survey.postId}" th:name="postId" type="checkbox">
+            	 </td>
+                 <td th:text="${status.count}"></td>
+                 <td>
+                 	<a th:href="@{/survey?postId=}+${survey.postId}" th:if="${survey.available}==1"
+                        th:text="${survey.title}"></a> 
+                    <a th:unless="${survey.available} ==1" th:text="${survey.title}"></a>
+                 </td>
+                 <!-- 如果available = 1 文字顯示:投票中，反之 :已完結 -->
+                 <td th:text="${survey.available eq 1 ? '投票中' : '已完結'}"></td>                
+                 <td th:text="${#dates.format(survey.startTime, 'yyyy-MM-dd')}"></td>
+                 <td th:text="${#dates.format(survey.endTime, 'yyyy-MM-dd')}"></td>
+                 <td><a th:href="@{/edit?postId=}+${survey.postId}" class="btn btn-warning goStatistics">前往</a></td>
+                </tr>
+    	    </table>    	   
+    		<nav aria-label="Page navigation example">
+  		  	  <ul th:if="${searchSurveys} == null" class="pagination justify-content-center align-items-center">
+  		  	<!-- 首頁 -->
+    	    	<li class="page-item">
+    	      		<a th:href="'/backendindex?pageNum=0'" 
+    	      		class="page-link">首頁</a>
+    	    	</li>
+    	    <!-- 上一頁 -->
+    	    	<li th:if="${surveys.hasPrevious()}" class="page-item">
+    	      		<a th:href="'/backendindex?pageNum='+${surveys.previousPageable().getPageNumber()}" 
+    	      		th:text="上一頁" class="page-link"></a>
+    	    	</li>
+    	    <!-- 中間頁 -->
+    	    	<li th:each="pageNum:${#numbers.sequence(0,surveys.getTotalPages()-1)}" class="page-item">
+    	      		<a th:href="'/backendindex?pageNum='+${pageNum}" 
+    	      		th:text="${pageNum + 1}" th:if="${pageNum ne surveys.pageable.getPageNumber()  and pageNum gt 0 }"
+    	      		class="page-link"></a>
+    	      
+    	      		<a th:href="'/backendindex?pageNum='+${pageNum}" 
+    	      		th:text="${pageNum + 1}" th:if="${pageNum eq surveys.pageable.getPageNumber()}"
+    	      		class="page-link"></a>
+    	    	</li>
+    	    <!-- 下一頁 -->
+    	    	<li th:if="${surveys.hasNext()}" class="page-item">
+    	      		<a th:href="'/backendindex?pageNum='+${surveys.nextPageable().getPageNumber()}" 
+    	      		th:text="下一頁" class="page-link"></a>
+    	    	</li>
+    	    <!-- 尾頁 -->
+    	    	<li class="page-item">
+    	    		<a th:href="'/backendindex?pageNum='+${surveys.getTotalPages()-1}"
+					th:if="${surveys.getTotalPages()-1 gt 0 }" class="page-link">尾頁</a>
+					<a th:href="'/backendindex?pageNum=0'" 
+					th:unless="${surveys.getTotalPages()-1 gt 0 }" class="page-link">尾頁</a>
+    	    	</li>
+  		  	  </ul>
+  		  	  
+  		  	   <ul th:unless="${searchSurveys} == null" class="pagination justify-content-center align-items-center">
+                    <!-- 首頁 -->
+                    <li class="page-item"><a onclick='index()' class="page-link">首頁</a>
+                    </li>
+                    <!-- 上一頁 -->
+                    <li th:if="${searchSurveys.hasPrevious()}" class="page-item">
+                        <a onclick='back()' th:text="上一頁" class="page-link"></a>
+                    </li>
+                    <!-- 中間頁 -->
+                    <li th:each="pageNum:${#numbers.sequence(0,searchSurveys.getTotalPages()-1)}" class="page-item">
+                    	<a th:id="${pageNum + 1}" th:text="${pageNum + 1}"
+                            th:if="${pageNum ne searchSurveys.pageable.getPageNumber()  and pageNum gt 0 }"
+                            class="page-link next1"></a>
+                        <a th:text="${pageNum + 1}" th:if="${pageNum eq searchSurveys.pageable.getPageNumber()}"
+                            class="page-link"></a>
+                    </li>
+                    <!-- 下一頁 -->
+                    <li th:if="${searchSurveys.hasNext()}" class="page-item">
+                    	<a onclick='next()' th:text="下一頁" class="page-link"></a>
+                    </li>
+                    <!-- 尾頁 -->
+                    <li class="page-item"><a onclick='last()' class="page-link">尾頁</a>
+                    </li>
+                </ul>
+			</nav>
+		  </form> 
+         </div>            
+        </div>    		
+      </div>
+ 	</body>
+<footer th:replace="~{index::footer}"></footer>
+</html>

@@ -1,0 +1,213 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+    <link th:href="@{/css/bootstrap.css}" rel="stylesheet" />
+    <script type="text/javascript" th:src="@{/js/bootstrap.js}"></script>
+    <script type="text/javascript" th:src="@{/js/jquery-3.6.0.js}"></script>
+    <script src="http://code.highcharts.com/highcharts.js"></script>
+    <meta charset="UTF-8" />
+</head>
+<title>QuestionnaireSystem</title>
+<script th:inline="javascript">
+    var message = /*[[${alertMessage}]]*/"";
+    if (message != null)
+        alert(message);
+
+    var searchSurveys = /*[[${searchSurveys}]]*/
+	
+	var count = searchSurveys.totalPages;
+	
+    function index() {
+        const pageUrl = new URL(window.location.href);
+        if (pageUrl.searchParams.get("pageNum") != null) {
+            window.location.href = pageUrl;
+        } else {
+            const newUrl = pageUrl + '&pageNum=0';
+            window.location.href = newUrl;
+        }
+    }
+
+    function next() {
+        const pageUrl = new URL(window.location.href);
+
+        if (pageUrl.searchParams.get("pageNum") != null) {
+            window.location.href = pageUrl;
+        } else {
+            const newUrl = pageUrl + '&pageNum=1';
+            window.location.href = newUrl;
+        }
+    }
+
+    function last() {
+        var pageUrl = new URL(window.location.href);
+        if (pageUrl.searchParams.get("pageNum") != null) {
+            let params = new URLSearchParams(pageUrl);
+            params.set('pageNum', (count - 1));
+            window.location.href = 'http://localhost:8088/search?' + params.toString();
+        } else {
+            const newUrl = pageUrl + '&pageNum=' + (count - 1);
+            window.location.href = newUrl;
+        }
+    }
+    $(document).ready(function () {
+        sessionStorage.removeItem('ansVal');
+        document.cookie = 'ansVal' + '=; expires=Thu, 01-Jan-70 00:00:01 GMT;';
+
+        $(".next1").click(function () {
+            var index = $(this).attr("id");
+            var pageUrl = new URL(window.location.href);
+            var strUrl = pageUrl.toString();
+            alert(strUrl.includes("pageNum"));
+            if (pageUrl.searchParams.get("pageNum") == null) {
+                var result = index - 1;
+                const newUrl = pageUrl + '&pageNum=' + result;
+                window.location.href = newUrl;
+            } else if (strUrl.includes("pageNum") == true) {     
+                let arr =strUrl.split('&pageNum=');
+                window.location.href = arr[0] + '&pageNum=' + result;
+            } else {
+                window.location.href = pageUrl;
+            }
+        })
+    })
+</script>
+
+<body>
+    <div th:fragment="layout1" class="border-bottom">
+        <div style="height: 50px" class="text-left fs-3 bg-dark text-white">
+            <a>問卷系統</a> <a th:href="@{/index}" class="link-info">首頁</a> <a th:href="@{/login}"
+                th:if="${session.person}==null" class="link-info">管理員登入</a> <a th:href="@{/backendindex}"
+                th:unless="${session.person} ==null" class="link-info">後台首頁</a> <a href="/logout"
+                th:unless="${session.person} ==null" class="link-info">登出</a>
+        </div>
+    </div>
+    <div class="container">
+        <div>
+            <h1 class="fs-2 fw-bold">首頁</h1>
+            <div>
+                <a>歡迎使用問卷查詢功能</a>
+            </div>
+            <div class="mb-3">
+                <a>進入後台請登入管理員帳號</a>
+            </div>
+        </div>
+        <hr />
+        <form th:action="@{/search}" method="get">
+            <div class="row mb-3">
+                <div class="col-2"></div>
+                <div class="col-2 text-center">
+                    <h2 class="form-label">問卷標題 :</h2>
+                </div>
+                <div class="col-4">
+                    <input type="text" class="form-control" th:name="title" placeholder="請填入問卷標題">
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-2"></div>
+                <div class="col-2 text-center">
+                    <h2 class="form-label">開始 / 結束 :</h2>
+                </div>
+                <div class="col-2">
+                    <input type="text" class="form-control" th:name="startTime" placeholder="(yyyy-MM-dd)">
+                </div>
+                <div class="col-2">
+                    <input type="text" class="form-control" th:name="endTime" placeholder="(yyyy-MM-dd)">
+                </div>
+                <div class="col-2">
+                    <button class="btn btn-primary" type="submit">查詢</button>
+                </div>
+            </div>
+            <table class="table table-striped table-bordered table-sm table-hover">
+                <tr>
+                    <td class="th-sm bg-dark p-2 text-white" width="10%">編號</td>
+                    <td class="th-sm bg-dark p-2 text-white bg-opacity-75" width="35%">問卷標題</td>
+                    <td class="th-sm bg-dark p-2 text-dark bg-opacity-50" width="10%">狀態</td>
+                    <td class="th-sm bg-dark p-2 text-dark bg-opacity-25" width="15%">開始時間</td>
+                    <td class="th-sm bg-dark p-2 text-dark bg-opacity-10" width="15%">結束時間</td>
+                    <td class="th-sm  p-2 text-dark" width="15%">統計結果</td>
+                </tr>
+                <tr th:if="${searchSurveys} == null" th:each="survey,status : ${surveys}">
+                    <td th:text="${status.count}"></td>
+                    <td><a th:href="@{/survey?postId=}+${survey.postId}" th:if="${survey.available}==1"
+                            th:text="${survey.title}"></a> <a th:unless="${survey.available} ==1"
+                            th:text="${survey.title}"></a>
+                    </td>
+                    <td th:text="${survey.available eq 1 ? '投票中' : '已完結'}"></td>
+                    <!-- 如果available = 1 文字顯示:投票中，反之 :已完結 -->
+                    <td th:text="${#dates.format(survey.startTime, 'yyyy-MM-dd')}"></td>
+                    <td th:text="${#dates.format(survey.endTime, 'yyyy-MM-dd')}"></td>
+                    <td><a th:href="@{/statistics?postId=}+${survey.postId}">前往</a></td>
+                </tr>
+
+                <tr th:unless="${searchSurveys} == null" th:each="survey,status : ${searchSurveys}">
+                    <td th:text="${status.count}"></td>
+                    <td><a th:href="@{/survey?postId=}+${survey.postId}" th:if="${survey.available}==1"
+                            th:text="${survey.title}"></a> <a th:unless="${survey.available} ==1"
+                            th:text="${survey.title}"></a>
+                    </td>
+                    <td th:text="${survey.available eq 1 ? '投票中' : '已完結'}"></td>
+                    <!-- 如果available = 1 文字顯示:投票中，反之 :已完結 -->
+                    <td th:text="${#dates.format(survey.startTime, 'yyyy-MM-dd')}"></td>
+                    <td th:text="${#dates.format(survey.endTime, 'yyyy-MM-dd')}"></td>
+                    <td><a th:href="@{/statistics?postId=}+${survey.postId}">前往</a></td>
+                </tr>
+            </table>
+            <nav aria-label="Page navigation example">
+                <ul th:if="${searchSurveys} == null" class="pagination justify-content-center align-items-center">
+                    <!-- 首頁 -->
+                    <li class="page-item"><a th:href="'/index?pageNum=0'" class="page-link">首頁</a></li>
+                    <!-- 上一頁 -->
+                    <li th:if="${surveys.hasPrevious()}" class="page-item"><a
+                            th:href="'/index?pageNum='+${surveys.previousPageable().getPageNumber()}" th:text="上一頁"
+                            class="page-link"></a></li>
+                    <!-- 中間頁 -->
+                    <li th:each="pageNum:${#numbers.sequence(0,surveys.getTotalPages()-1)}" class="page-item"><a
+                            th:href="'/index?pageNum='+${pageNum}" th:text="${pageNum + 1}"
+                            th:if="${pageNum ne surveys.pageable.getPageNumber()  and pageNum gt 0 }"
+                            class="page-link"></a> <a th:href="'/index?pageNum='+${pageNum}" th:text="${pageNum + 1}"
+                            th:if="${pageNum eq surveys.pageable.getPageNumber()}" class="page-link"></a></li>
+                    <!-- 下一頁 -->
+                    <li th:if="${surveys.hasNext()}" class="page-item"><a
+                            th:href="'/index?pageNum='+${surveys.nextPageable().getPageNumber()}" th:text="下一頁"
+                            class="page-link"></a></li>
+                    <!-- 尾頁 -->
+                    <li class="page-item"><a th:href="'/index?pageNum='+${surveys.getTotalPages()-1}"
+                            th:if="${surveys.getTotalPages()-1 gt 0 }" class="page-link">尾頁</a>
+                        <a th:href="'/index?pageNum=0'" th:unless="${surveys.getTotalPages()-1 gt 0 }"
+                            class="page-link">尾頁</a>
+                    </li>
+                </ul>
+
+                <ul th:unless="${searchSurveys} == null" class="pagination justify-content-center align-items-center">
+                    <!-- 首頁 -->
+                    <li class="page-item"><a onclick='index()' class="page-link">首頁</a>
+                    </li>
+                    <!-- 上一頁 -->
+                    <li th:if="${searchSurveys.hasPrevious()}" class="page-item">
+                        <a th:text="上一頁" class="page-link"></a>
+                    </li>
+                    <!-- 中間頁 -->
+                    <li th:each="pageNum:${#numbers.sequence(0,searchSurveys.getTotalPages()-1)}" class="page-item"><a
+                            th:id="${pageNum + 1}" th:text="${pageNum + 1}"
+                            th:if="${pageNum ne searchSurveys.pageable.getPageNumber()  and pageNum gt 0 }"
+                            class="page-link next1"></a>
+                        <a th:text="${pageNum + 1}" th:if="${pageNum eq searchSurveys.pageable.getPageNumber()}"
+                            class="page-link"></a>
+                    </li>
+                    <!-- 下一頁 -->
+                    <li th:if="${searchSurveys.hasNext()}" class="page-item"><a th:text="下一頁" class="page-link"></a>
+                    </li>
+                    <!-- 尾頁 -->
+                    <li class="page-item"><a onclick='last()' class="page-link">尾頁</a>
+                    </li>
+                </ul>
+            </nav>
+        </form>
+    </div>
+</body>
+<footer th:fragment="footer" style="height: 30px; text-align: center">
+    <p>© 2022 QuestionnaireSystem, Inc. All rights reserved.</p>
+</footer>
+
+</html>

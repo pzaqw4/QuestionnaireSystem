@@ -1,0 +1,247 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{index::header}">
+<meta charset="UTF-8" />
+</head>
+<script th:inline="javascript">
+var message = /*[[${alertMessage}]]*/"";
+if (message != null)
+	alert(message);
+
+$(document).ready(function () {		
+    $(".ansRadio").click(function () {
+        let checkValue = $(this).val();
+        var checkID = $(this).attr("id");
+        var arr = JSON.parse(sessionStorage.getItem('ansVal')) || [];
+        var inputObject = {
+            key: checkID, value: checkValue
+        };
+        if (arr.length > 0 && arr != null) {
+            var sameKey = false;                  //為了不重復新增陣列內容(不重複push)
+            for (var i = 0; i < arr.length; i++) {  //檢查arr陣列內容
+                if (arr[i].key == checkID) {      //檢查是否重複,若重複直接覆蓋
+                    arr[i] = inputObject;
+                    sameKey = true;
+                    break;                      //跳出迴圈
+                }
+            }
+            if (sameKey == false)
+                arr.push(inputObject);
+        }
+        else {
+            arr.push(inputObject);
+        }
+        var val = JSON.stringify(arr);    //陣列轉為JSON,填入sessionStorage
+        sessionStorage.setItem("ansVal", val);
+        val = (val + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);
+        document.cookie = "ansVal" + "=" + val;  //加入cookie編碼
+        
+    });
+    $(".ansChb").click(function () {
+        var isChecked = $(this).is(":checked");
+        var chbarr = JSON.parse(sessionStorage.getItem('ansVal')) || [];   //判斷是否為新資料
+        let checkValue = $(this).val();
+        var checkID = $(this).attr("id");
+        var inputObject = {
+            key: checkID, value: checkValue + ','
+        };
+        if (isChecked == true) {                                          //判斷是否點選
+            if (chbarr != null && chbarr.length > 0) {
+                var sameKey = false;
+                for (var i = 0; i < chbarr.length; i++) {
+                    if (chbarr[i].key == inputObject.key) {
+                        chbarr[i].value = chbarr[i].value.concat(inputObject.value);    //答案字串陣列加入新的字串
+                        sameKey = true;
+                        break;
+                    }
+                }
+                if (sameKey == false)
+                    chbarr.push(inputObject);         //寫入陣列
+            }
+            else {
+                chbarr.push(inputObject);             //寫入陣列
+            }
+            var val = JSON.stringify(chbarr);     //陣列轉為JSON,填入sessionStorage
+            sessionStorage.setItem("ansVal", val);
+            val = (val + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent); //加入cookie編碼
+            document.cookie = "ansVal" + "=" + val;  
+
+        }
+        else {                                       //若取消點選,則做檢查                               
+            if (chbarr != null && chbarr.length > 0) {
+                for (var i = 0; i < chbarr.length; i++) {
+                    if (chbarr[i].key == inputObject.key) {
+                        chbarr[i].value = chbarr[i].value.replace(inputObject.value, "");   //點選的值取代為空字串
+                        break;
+                    }
+                }
+                var val = JSON.stringify(chbarr);     //陣列轉為JSON,填入sessionStorage
+                sessionStorage.setItem("ansVal", val);
+                val = (val + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);   //加入cookie編碼
+                document.cookie = "ansVal" + "=" + val; 
+            }
+        }
+    });
+
+    $('.txtArea').change(function () {     //文字方塊的值改變觸發事件
+        var checkID = $(this).attr("id");
+        var txtVal = $(this).val();
+        var txtArr = JSON.parse(sessionStorage.getItem('ansVal')) || [];
+        var inputObject = {
+            key: checkID, value: txtVal
+        };
+        if (txtArr != null && txtArr.length > 0) {
+            var sameKey = false;
+            for (var i = 0; i < txtArr.length; i++) {                //檢查arr陣列內容
+                if (txtArr[i].key == checkID) {                     //檢查是否重複,若重複直接覆蓋
+                    txtArr[i] = inputObject;
+                    sameKey = true;
+                    break;                                          //跳出迴圈
+                }
+            }
+            if (sameKey == false)
+                txtArr.push(inputObject);
+        }
+        else {
+            txtArr.push(inputObject);
+        }
+        var val = JSON.stringify(txtArr);    //陣列轉為JSON,填入sessionStorage
+        sessionStorage.setItem("ansVal", val);
+        val = (val + '').replace(/[^!#$&-+\--:<-\[\]-~]/g, encodeURIComponent);   //加入cookie編碼
+        document.cookie = "ansVal" + "=" + val;
+        $('.txtArea').trigger('change');
+    });
+    //sessionStorage取值，轉型
+    var answer =JSON.parse(sessionStorage.getItem('ansVal'));   
+    //如果有值，跟問題資料做比對
+    if(answer !== null){       
+        const pageUrl = new URL(window.location.href);
+      	//從URL取得query string
+    	var pid = pageUrl.searchParams.get("postId"); 
+    	
+    	 $.ajax({
+    	        url: "/loadQuestions/"+pid,
+    	        type: "GET",
+    	        dataType: 'json',
+    	        success: function (result) {
+    	        	//取得問題資料
+    	            if(result !== null){
+    	            	//檢查每個問題
+    	            	for (var i = 0; i < result.length; i++) {
+    	                	var question = result[i];
+    	                	//檢查每個選項
+    	                	for (var k = 0; k < answer.length; k++) { 
+    	                		if(question.type == 0 ){    	                		                   	
+        	                		if(question.quId == answer[k].key){
+        	                			$('[id="'+answer[k].key+'"][value="'+answer[k].value+'"]').attr('checked',true);               			
+        	                		}  	               	
+    	                		}else if(question.type == 1){
+        	                		if(question.quId == answer[k].key){
+        	                			//去除多選題的','
+        	                			var splitAnswer = answer[k].value.split(',');
+        	                			//檢查多選選項
+        	                			for(var l = 0 ; l < splitAnswer.length ; l++){
+        	                				$('[id="'+answer[k].key+'"][value="'+splitAnswer[l]+'"]').prop("checked", true);
+        	                			}        	                			 
+        	                		}
+    	                		}else{
+        	                		if(question.quId == answer[k].key){
+        	                			$('[id="'+answer[k].key+'"]').val(answer[k].value);
+        	                		}
+    	                		}    	                	
+    	                	}
+    	            	}
+    	            }else{
+    	            	alert("問題發生!! 請重新嘗試!");
+    	            }
+    	        }
+    	    });   	
+    }
+})
+</script>
+<title>Survey Page</title>
+<body>
+	<div th:replace="~{index::layout1}"></div>
+	<div class="container">
+		<!-- 內容放這邊 -->
+		<div class="row mb-3">
+			<div class="col-2">
+				<h1 th:text="問卷填寫" class="fs-2 fw-bold"></h1>
+			</div>
+			<div class="col-3"></div>
+			<div class="col-4">
+				<small th:text="'有效時間為 : '+${survey.startTime} + '~~' + ${survey.endTime}"></small>
+			</div>									
+		</div>
+		<div class="row mb-3">
+			<div class="col-2"></div>
+			<div class="col-3">
+				<h1 th:text="${survey.title}" class="fs-2 fw-bold"></h1>
+			</div>								
+		</div>	
+		<p th:text="${survey.body}"></p>
+		<hr />
+		<form th:action="@{/survey}"  method="post" class="row g-2 needs-validation">
+			<div class="row">
+				<div class="col-4 form-floating mb-3">
+					<input type="text" th:if="${session.feedback} ==null" class="form-control" id="txtName" name="username"
+						placeholder="123" required /> 
+					<input type="text" th:unless="${session.feedback} ==null" class="form-control" id="txtName" name="username"
+						th:value="${session.feedback.userName}" placeholder="123" required />
+					<label for="txtName">請在此填入姓名</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-4 form-floating mb-3">
+					<input type="tel" th:if="${session.feedback} ==null" class="form-control" id="txtPhone" name="userphone"
+						placeholder="123" pattern="09.{8}" title="" required>
+					<input type="tel" th:unless="${session.feedback} ==null" class="form-control" id="txtPhone" name="userphone"
+					 	th:value="${session.feedback.userPhone}"  placeholder="123" pattern="09.{8}" title="" required>
+					<label for="txtPhone">請在此填入手機</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-4 form-floating mb-3">
+					<input type="email" th:if="${session.feedback} ==null" class="form-control" id="txtEmail" name="useremail"
+						placeholder="111@111" required> 
+					<input type="email" th:unless="${session.feedback} ==null" class="form-control" id="txtEmail" name="useremail"
+						th:value="${session.feedback.userEmail}"  placeholder="111@111" required> 	
+					<label for="txtEmail">請在此填入 Email</label>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-4 form-floating mb-3">
+					<input type="number" th:if="${session.feedback} ==null" class="form-control" id="txtAge" name="userage"
+						placeholder="111" min="10" max="120" required> 
+					<input type="number" th:unless="${session.feedback} ==null" class="form-control" id="txtAge" name="userage"
+						th:value="${session.feedback.userAge}"	placeholder="111" min="10" max="120"  required>
+					<label for="txtAge">請在此填入年齡</label>
+				</div>
+			</div>
+			<hr class="my-4 invisible">
+			<div th:each="question,status : ${questionInfo}" >
+				<h4 th:text="'第'+${status.count}+'題 : '+${question.caption}"></h4>
+					<p th:if="${question.nullable eq 'on'}" style="color: red">(必填)</p>
+					<input type="radio" th:if ="${question.type}==0" th:name="${status.index}" th:each="answerVal,ansStatus : ${#strings.arraySplit(question.selection, ';')}" 
+					th:text="${answerVal}" th:value="${answerVal}" class="ansRadio" th:id="${question.quId}">
+					<input type="checkbox" th:if ="${question.type}==1" th:name="${status.index}" th:each="answerVal,ansStatus : ${#strings.arraySplit(question.selection, ';')}"  
+					th:text="${answerVal}" th:value="${answerVal}" class="ansChb" th:id="${question.quId}"/>				
+					<textarea th:if ="${question.type}==2" class="col-4 txtArea" placeholder="請在此作答" th:id="${question.quId}"></textarea>
+				<hr class="invisible"/>
+			</div>
+			<div class="row mb-3">
+				<div class="col-2"></div>
+				<div class="col-2">
+					<a th:href="@{/index}" class="btn btn-warning" th:confirm-cancel="|確定放棄填寫嗎??|"
+					onclick="return confirm(this.getAttribute('confirm-cancel'))">取消</a>
+				</div>
+				<div class="col-1"></div>
+				<div class="col-2">
+					<button type="submit" class="btn btn-primary">送出</button>
+				</div>									
+			</div>
+		</form>
+	</div>
+</body>
+<footer th:replace="~{index::footer}"> </footer>
+</html>
