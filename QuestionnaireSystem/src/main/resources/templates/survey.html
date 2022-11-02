@@ -112,7 +112,7 @@ $(document).ready(function () {
         $('.txtArea').trigger('change');
     });
     //sessionStorage取值，轉型
-    var answer =JSON.parse(sessionStorage.getItem('ansVal'));   
+    var answer = JSON.parse(sessionStorage.getItem('ansVal'));   
     //如果有值，跟問題資料做比對
     if(answer !== null){       
         const pageUrl = new URL(window.location.href);
@@ -232,12 +232,12 @@ $(document).ready(function () {
 			<div class="row mb-3">
 				<div class="col-2"></div>
 				<div class="col-2">
-					<a th:href="@{/index}" class="btn btn-warning" th:confirm-cancel="|確定放棄填寫嗎??|"
+					<a th:href="@{/index}" class="btn btn-warning" id="surveyCancel" th:confirm-cancel="|確定放棄填寫嗎??|"
 					onclick="return confirm(this.getAttribute('confirm-cancel'))">取消</a>
 				</div>
 				<div class="col-1"></div>
 				<div class="col-2">
-					<button type="submit" class="btn btn-primary">送出</button>
+					<button type="submit" id="surveySubmit" class="btn btn-primary">送出</button>
 				</div>									
 			</div>
 		</form>

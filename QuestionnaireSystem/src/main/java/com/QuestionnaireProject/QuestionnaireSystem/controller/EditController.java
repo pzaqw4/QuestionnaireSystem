@@ -456,7 +456,7 @@ public class EditController {
 		question.setType(type);
 		question.setNullable(nullable);
 		question.setPostId(postid);
-
+		
 		return "redirect:/edit?postId=" + postid;
 	}
 }

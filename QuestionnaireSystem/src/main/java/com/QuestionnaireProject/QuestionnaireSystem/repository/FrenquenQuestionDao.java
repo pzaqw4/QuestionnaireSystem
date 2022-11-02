@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.QuestionnaireProject.QuestionnaireSystem.entity.FrenquenQuestion;
 
-@Transactional  //避免控制資料庫時發生錯誤產生垃圾
+@Transactional(rollbackFor = Exception.class)  //避免控制資料庫時發生錯誤產生垃圾，最好寫在Service層的方法上
 @Repository
 public interface FrenquenQuestionDao extends JpaRepository<FrenquenQuestion,Integer>{
 

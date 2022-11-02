@@ -1,5 +1,6 @@
 package com.QuestionnaireProject.QuestionnaireSystem;
 
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,5 +37,9 @@ public class SurveyTest {
 		for (Survey survey : result) {
 			System.out.println(survey.getTitle());
 		}
+	}
+	@Test
+	public void Test() {	
+
 	}
 }

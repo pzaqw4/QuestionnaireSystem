@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.QuestionnaireProject.QuestionnaireSystem.entity.Feedback;
 import com.QuestionnaireProject.QuestionnaireSystem.entity.Question;
@@ -36,8 +37,13 @@ public class SurveyController {
 
 	@GetMapping(value = { "/survey" })
 	public String survey(Model model, HttpSession session
+			,RedirectAttributes redirectAttrs
 			// 取得URL中的postId
 			, @RequestParam(name = "postId", required = false) UUID postId) {
+		if(postId == null) {
+			redirectAttrs.addFlashAttribute("alertMessage", "請選擇問卷!!");
+			return "redirect:/index";
+		}
 		// 透過postId找問卷
 		Survey survey = surveyDao.findById(postId).get();
 		// 透過postId找問卷內所有問題
